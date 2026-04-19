@@ -5,7 +5,6 @@ import api from './api'
 function App() {
 
   const [split, setSplit] = useState(50); // 0 = liberal, 100 = conservative
-  const [ratio,setRatio] = useState([0.5,0.5])
   const [inputText,setInputText] = useState<string|null>()
 
   // const fetchScore = async() =>{
