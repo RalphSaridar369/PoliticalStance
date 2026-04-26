@@ -1,41 +1,12 @@
-import { useState } from 'react'
-import './App.css'
-import api from './api'
+import { useState } from "react";
+import "./App.css";
+import api from "./api";
 
 function App() {
+  const [split, setSplit] = useState(50);
+  const [inputText, setInputText] = useState<string>("");
+  const [data, setData] = useState<{ score: string; label: string } | null>(null);
 
-  const [split, setSplit] = useState(50); // 0 = liberal, 100 = conservative
-  const [inputText,setInputText] = useState<string|null>()
-
-  // const fetchScore = async() =>{
-  //   if(!inputText) 
-  //     return
-
-  //   // const randomN = Math.ceil(Math.random() * 100) /100
-    
-  //   // console.log([randomN, Math.ceil((1 - randomN)*100)/100])
-    
-  //   // setRatio(randomN > 0.5 ?[randomN, Math.ceil((1 - randomN)*100)/100] : [Math.ceil((1 - randomN)*100)/100, randomN])
-
-  //   const response = await api.post('/predict',{text:inputText})
-  //   const dataResponse = response.data
-
-    
-  //   console.log('dataResponse: ',dataResponse)
-  //   const firstScore = Math.ceil(dataResponse.scores[0] * 100) /100
-    
-  //   alert(`${dataResponse.label}: ${firstScore}`)
-  //   if(dataResponse.label === "conservative"){
-  //     const firstScore = Math.ceil(dataResponse.scores[0] * 100) /100
-  //     setRatio([ Math.ceil((1- firstScore)*100)/100, firstScore])
-  //   }
-  //   else{
-  //     setRatio([firstScore, Math.ceil((1- firstScore)*100)/100])
-  //   }
-    
-  // }
-
-  // 🎬 smooth animation helper
   const animateSplit = (from: number, to: number, duration = 600) => {
     const start = performance.now();
 
@@ -43,7 +14,7 @@ function App() {
       const progress = Math.min((time - start) / duration, 1);
       const value = from + (to - from) * progress;
 
-      setSplit(value);
+      setSplit(Math.round(value));
 
       if (progress < 1) requestAnimationFrame(step);
     };
@@ -52,56 +23,60 @@ function App() {
   };
 
   const fetchScore = async () => {
-    if (!inputText) return;
-  
-    const response = await api.post("/predict", { text: inputText });
-    const data = response.data;
-  
-    console.log("dataResponse:", data);
-  
-    const maxScore = Math.max(...data.scores);
-    const minScore = Math.min(...data.scores);
-    
-    console.log([minScore, maxScore], minScore + maxScore === 1)
+    if (!inputText.trim()) return;
 
-    let liberal: number;
-    let conservative: number;
-  
-    if (data.label === "liberal") {
-      liberal = maxScore;
-      conservative = minScore;
-    } else {
-      conservative = maxScore;
-      liberal = minScore;
+    try {
+      const response = await api.post("/predict", { text: inputText });
+      const data = response.data;
+
+      setData({
+        label: data.label,
+        score: (Math.max(...data.scores) * 100).toFixed(2),
+      });
+
+      const conservative = data.scores[1];
+      const newSplit = Math.round(conservative * 100);
+
+      animateSplit(split, newSplit);
+    } catch (err) {
+      console.error("API error:", err);
     }
-  
-    const newSplit = conservative * 100;
-  
-    alert(
-      `Liberal: ${liberal.toFixed(2)} | Conservative: ${conservative.toFixed(2)}`
-    );
-  
-    animateSplit(split, newSplit);
   };
 
   return (
-    <>
-      <div className="container" style={{
-           transition: "background 6s ease",
-           background: `linear-gradient(
-            to right,
-            rgba(1, 51, 100, 1) ${100 - split}%,
-            rgba(211, 11, 13, 1) ${split}%
-          )`,
-        }}>
-        <div className='input-container'>
-          Hello
-        <input type='text' value={inputText} onChange={(e)=>setInputText(e.target.value)} placeholder='Obama sucks'/>
-        <button onClick={fetchScore}> Click me</button>
-        </div>
+    <div className="container">
+      {/* SPLIT BAR */}
+      <div className="split-bar">
+        {data?.label && (
+          <div className="score-label">
+            <h1>
+              {data.score}% {data.label}
+            </h1>
+          </div>
+        )}
+
+        <div className="blue" style={{ width: `${100 - split}%` }} />
+        <div className="red" style={{ width: `${split}%` }} />
       </div>
-    </>
-  )
+
+      <div className="input-container">
+        <div className="info-wrapper">
+          <div>
+            Insert a statement to check its political bias.
+          </div>
+        </div>
+
+        <input
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="Enter statement..."
+        />
+
+        <button onClick={fetchScore}>Analyze</button>
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
