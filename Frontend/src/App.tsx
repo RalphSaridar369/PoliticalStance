@@ -23,7 +23,7 @@ function App() {
   };
 
   const fetchScore = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || inputText === inputText) return;
 
     try {
       const response = await api.post("/predict", { text: inputText });
@@ -70,6 +70,11 @@ function App() {
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              fetchScore();
+            }
+          }}
           placeholder="Enter statement..."
         />
 
