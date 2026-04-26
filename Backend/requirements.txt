@@ -2,3 +2,5 @@ fastapi
 uvicorn
 gunicorn
 pydantic
+torch
+transformers
