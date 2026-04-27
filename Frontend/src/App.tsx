@@ -5,7 +5,10 @@ import api from "./api";
 function App() {
   const [split, setSplit] = useState(50);
   const [inputText, setInputText] = useState<string>("");
-  const [data, setData] = useState<{ score: string; label: string } | null>(null);
+  const [data, setData] = useState<{ score: string; label: string } | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
 
   const animateSplit = (from: number, to: number, duration = 600) => {
     const start = performance.now();
@@ -25,6 +28,8 @@ function App() {
   const fetchScore = async () => {
     if (!inputText.trim()) return;
 
+    setLoading(true);
+
     try {
       const response = await api.post("/predict", { text: inputText });
       const data = response.data;
@@ -40,6 +45,8 @@ function App() {
       animateSplit(split, newSplit);
     } catch (err) {
       console.error("API error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,11 +68,8 @@ function App() {
 
       <div className="input-container">
         <div className="info-wrapper">
-          <div>
-            Insert a statement to check its political bias.
-          </div>
+          <div>Insert a statement to check its political bias.</div>
         </div>
-
         <input
           type="text"
           value={inputText}
@@ -77,8 +81,9 @@ function App() {
           }}
           placeholder="Enter statement..."
         />
-
-        <button onClick={fetchScore}>Analyze</button>
+        <button onClick={fetchScore} disabled={loading}>
+          {loading ? "Analyzing..." : "Analyze"}
+        </button>
       </div>
     </div>
   );
