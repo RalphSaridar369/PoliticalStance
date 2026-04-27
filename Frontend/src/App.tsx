@@ -23,7 +23,7 @@ function App() {
   };
 
   const fetchScore = async () => {
-    if (!inputText.trim() || inputText === inputText) return;
+    if (!inputText.trim()) return;
 
     try {
       const response = await api.post("/predict", { text: inputText });

@@ -11,7 +11,7 @@ class TextRequest(BaseModel):
 async def lifespan(app: FastAPI):
     app.state.classifier = pipeline(
         "zero-shot-classification",
-        model="typeform/distilbert-base-uncased-mnli"
+        model="facebook/bart-large-mnli"
     )
     yield
 
