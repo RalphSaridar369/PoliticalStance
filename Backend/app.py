@@ -3,6 +3,7 @@ from transformers import pipeline
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 class TextRequest(BaseModel):
     text: str
@@ -17,9 +18,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-origins = [
-    "http://localhost:5173",  # Vite dev server
-]
+origins = os.getenv(
+    "FRONT_END_URL",
+    "http://localhost:5173"
+).split(",")
+
 
 app.add_middleware(
     CORSMiddleware,
